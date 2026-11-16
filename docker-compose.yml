@@ -1,0 +1,9 @@
+services:
+  mongo:
+    image: mongo:7
+  api:
+    build: ./backend
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+    ports: ["8000:8000"]
+    depends_on: [mongo]

@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+tldextract
+rapidfuzz
+pymongo
+PyMuPDF
+pytesseract
+Pillow
+opencv-python-headless
+numpy
+faster-whisper

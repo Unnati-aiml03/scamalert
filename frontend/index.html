@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScamShield – Check before you click</title>
+<style>
+:root{--bg:#fafaf7;--card:#fff;--text:#1d1d1b;--mut:#666;--line:#e3e3dc}
+@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#21211f;--text:#f1f1ec;--mut:#aaa;--line:#38382f}}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
+main{max-width:680px;margin:0 auto;padding:24px 16px}
+h1{font-size:1.8rem;margin:0}p.sub{color:var(--mut);margin:.3rem 0 1.2rem}
+textarea{width:100%;height:140px;padding:14px;font-size:1.1rem;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--text)}
+.row{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
+button,label.file{padding:14px 20px;font-size:1.1rem;border-radius:12px;border:0;cursor:pointer;font-weight:600}
+#go{background:#ff5f1f;color:#fff;flex:1}label.file{background:var(--card);border:2px solid var(--line)}
+#res{display:none;margin-top:18px;padding:20px;border-radius:14px;border:3px solid}
+.Safe{border-color:#188038;background:#e6f4ea;color:#0b3d1a}.Suspicious{border-color:#e8a200;background:#fff4d6;color:#4a3300}.Dangerous{border-color:#d93025;background:#fce8e6;color:#5a0d08}
+#res h2{margin:0 0 8px;font-size:1.6rem}#res ul{padding-left:20px}
+#rep{margin-top:10px;background:#d93025;color:#fff}
+.badge{margin-top:20px;font-size:.9rem;color:var(--mut)}
+</style></head><body><main>
+<h1>🛡️ ScamShield</h1>
+<p class="sub">Paste a message or link, or upload a PDF, screenshot or voice note. We check it in seconds.</p>
+<textarea id="text" placeholder="Paste SMS, WhatsApp message or link here…"></textarea>
+<div class="row">
+  <label class="file">📎 Upload file<input id="file" type="file" accept=".pdf,image/*,audio/*" hidden></label>
+  <button id="go">Check now</button>
+</div>
+<div id="fname" class="badge"></div>
+<div id="res"></div>
+<p class="badge">🔒 We never store your files or identity. Anonymous results auto-delete in 24 hours.</p>
+</main>
+<script>
+const API="http://localhost:8000";
+const $=id=>document.getElementById(id);
+$("file").onchange=e=>$("fname").textContent=e.target.files[0]?"Selected: "+e.target.files[0].name:"";
+$("go").onclick=async()=>{
+  const fd=new FormData();fd.append("text",$("text").value);
+  if($("file").files[0])fd.append("file",$("file").files[0]);
+  $("go").textContent="Checking…";
+  const r=$("res");
+  try{
+    const resp=await fetch(API+"/analyze",{method:"POST",body:fd});
+    const d=await resp.json();
+    if(!resp.ok)throw new Error(d.detail||"Error");
+    const icon={Safe:"✅",Suspicious:"⚠️",Dangerous:"🚨"}[d.verdict];
+    r.className=d.verdict;r.style.display="block";
+    r.innerHTML=`<h2>${icon} ${d.verdict} (${d.score}/100)</h2><ul>${d.reasons.map(x=>`<li>${x.replace(/</g,"&lt;")}</li>`).join("")}</ul><b>${d.advice}</b>`+
+      (d.verdict!=="Safe"?`<br><button id="rep">Report to Cyber Crime</button>`:"");
+    if($("rep"))$("rep").onclick=async()=>{const x=await(await fetch(API+"/report",{method:"POST",body:new FormData()})).json();$("rep").outerHTML=`<p>✅ Reported. Reference: ${x.ref}</p>`};
+  }catch(e){r.className="Dangerous";r.style.display="block";r.textContent="Could not check: "+e.message}
+  $("go").textContent="Check now";
+};
+</script></body></html>
