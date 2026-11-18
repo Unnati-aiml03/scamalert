@@ -1,52 +1,166 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ScamShield – Check before you click</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScamShield: check before you click</title>
 <style>
-:root{--bg:#fafaf7;--card:#fff;--text:#1d1d1b;--mut:#666;--line:#e3e3dc}
-@media(prefers-color-scheme:dark){:root{--bg:#161614;--card:#21211f;--text:#f1f1ec;--mut:#aaa;--line:#38382f}}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text)}
-main{max-width:680px;margin:0 auto;padding:24px 16px}
-h1{font-size:1.8rem;margin:0}p.sub{color:var(--mut);margin:.3rem 0 1.2rem}
-textarea{width:100%;height:140px;padding:14px;font-size:1.1rem;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--text)}
-.row{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
-button,label.file{padding:14px 20px;font-size:1.1rem;border-radius:12px;border:0;cursor:pointer;font-weight:600}
-#go{background:#ff5f1f;color:#fff;flex:1}label.file{background:var(--card);border:2px solid var(--line)}
-#res{display:none;margin-top:18px;padding:20px;border-radius:14px;border:3px solid}
-.Safe{border-color:#188038;background:#e6f4ea;color:#0b3d1a}.Suspicious{border-color:#e8a200;background:#fff4d6;color:#4a3300}.Dangerous{border-color:#d93025;background:#fce8e6;color:#5a0d08}
-#res h2{margin:0 0 8px;font-size:1.6rem}#res ul{padding-left:20px}
-#rep{margin-top:10px;background:#d93025;color:#fff}
-.badge{margin-top:20px;font-size:.9rem;color:var(--mut)}
-</style></head><body><main>
-<h1>🛡️ ScamShield</h1>
-<p class="sub">Paste a message or link, or upload a PDF, screenshot or voice note. We check it in seconds.</p>
-<textarea id="text" placeholder="Paste SMS, WhatsApp message or link here…"></textarea>
-<div class="row">
-  <label class="file">📎 Upload file<input id="file" type="file" accept=".pdf,image/*,audio/*" hidden></label>
-  <button id="go">Check now</button>
-</div>
-<div id="fname" class="badge"></div>
-<div id="res"></div>
-<p class="badge">🔒 We never store your files or identity. Anonymous results auto-delete in 24 hours.</p>
+:root{--bg:#faf7f2;--card:#fff;--text:#1b1a17;--mut:#5c584d;--line:#cfc8b8;--acc:#b83c00;--acc-ink:#fff;
+ --safe-bg:#e3f3e7;--safe-bd:#1e7a38;--safe-tx:#0d3a1b;--warn-bg:#fff1cf;--warn-bd:#9a6a00;--warn-tx:#4a3200;--bad-bg:#fde6e3;--bad-bd:#b3261e;--bad-tx:#5a0f09}
+@media (prefers-color-scheme:dark){:root{--bg:#15130f;--card:#201d17;--text:#f3efe6;--mut:#b5afa0;--line:#4a4436;--acc:#ff8a50;--acc-ink:#1b0e05;
+ --safe-bg:#12301b;--safe-bd:#4cc36c;--safe-tx:#c9f0d4;--warn-bg:#352a0a;--warn-bd:#e0a81e;--warn-tx:#fbe7b0;--bad-bg:#3a1512;--bad-bd:#ff6b5c;--bad-tx:#ffd9d4}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:1.05rem/1.6 "Segoe UI","Noto Sans","Noto Sans Devanagari",system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:1.9rem;margin:0}
+.sub,.hint{color:var(--mut)}.sub{margin:6px 0 20px}.hint{font-size:.95rem;margin:6px 0}
+label.lbl{display:block;font-weight:600;margin-bottom:6px}
+textarea{width:100%;min-height:150px;padding:14px;font:inherit;color:var(--text);background:var(--card);border:2px solid var(--line);border-radius:12px;resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.btn{min-height:48px;padding:12px 20px;font:inherit;font-weight:700;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.primary{flex:1;min-width:160px;background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.btn:disabled{opacity:.7;cursor:wait}
+.lang{display:flex;gap:6px}.lang .btn{min-height:44px;padding:8px 14px}
+.lang .btn[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;background:var(--text);color:var(--bg);padding:10px 14px;border-radius:8px;z-index:9}
+.skip:focus{left:8px}
+a:focus-visible,button:focus-visible,textarea:focus-visible,#file:focus-visible+label{outline:3px solid var(--acc);outline-offset:2px}
+#res{display:block;margin-top:22px;padding:20px;border:3px solid;border-radius:14px}
+#res[hidden]{display:none}
+#res:focus{outline:3px solid var(--text);outline-offset:3px}
+#res.Safe{background:var(--safe-bg);border-color:var(--safe-bd);color:var(--safe-tx)}
+#res.Suspicious{background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx)}
+#res.Dangerous{background:var(--bad-bg);border-color:var(--bad-bd);color:var(--bad-tx)}
+#res h2{margin:0 0 8px;font-size:1.5rem}
+.meter{height:12px;border-radius:6px;background:rgba(127,127,127,.3);margin:8px 0 14px;overflow:hidden}
+.meter i{display:block;height:100%;background:currentColor}
+#res ul{margin:0 0 14px;padding-left:22px}#res li{margin-bottom:4px}
+#rep{background:var(--bad-bd);border-color:var(--bad-bd);color:#fff;margin-top:12px}
+.privacy{margin-top:24px;font-size:.95rem;color:var(--mut)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-i="skip">Skip to main content</a>
+<main id="main">
+  <header class="top">
+    <h1><span aria-hidden="true">🛡️</span> ScamShield</h1>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" class="btn" id="en" aria-pressed="true">English</button>
+      <button type="button" class="btn" id="hi" aria-pressed="false" lang="hi">हिन्दी</button>
+    </div>
+  </header>
+  <p class="sub" data-i="sub"></p>
+
+  <label class="lbl" for="text" data-i="label"></label>
+  <textarea id="text" aria-describedby="hint"></textarea>
+  <p class="hint" id="hint" data-i="hint"></p>
+
+  <div class="row">
+    <input type="file" id="file" class="sr" accept=".pdf,image/*,audio/*">
+    <label for="file" class="btn" data-i="upload"></label>
+    <button type="button" class="btn primary" id="go"></button>
+  </div>
+  <p class="hint" id="fname" aria-live="polite"></p>
+
+  <section id="res" tabindex="-1" aria-live="polite" hidden></section>
+  <p class="privacy" data-i="privacy"></p>
 </main>
+
 <script>
-const API="http://localhost:8000";
-const $=id=>document.getElementById(id);
-$("file").onchange=e=>$("fname").textContent=e.target.files[0]?"Selected: "+e.target.files[0].name:"";
-$("go").onclick=async()=>{
-  const fd=new FormData();fd.append("text",$("text").value);
-  if($("file").files[0])fd.append("file",$("file").files[0]);
-  $("go").textContent="Checking…";
-  const r=$("res");
-  try{
-    const resp=await fetch(API+"/analyze",{method:"POST",body:fd});
-    const d=await resp.json();
-    if(!resp.ok)throw new Error(d.detail||"Error");
-    const icon={Safe:"✅",Suspicious:"⚠️",Dangerous:"🚨"}[d.verdict];
-    r.className=d.verdict;r.style.display="block";
-    r.innerHTML=`<h2>${icon} ${d.verdict} (${d.score}/100)</h2><ul>${d.reasons.map(x=>`<li>${x.replace(/</g,"&lt;")}</li>`).join("")}</ul><b>${d.advice}</b>`+
-      (d.verdict!=="Safe"?`<br><button id="rep">Report to Cyber Crime</button>`:"");
-    if($("rep"))$("rep").onclick=async()=>{const x=await(await fetch(API+"/report",{method:"POST",body:new FormData()})).json();$("rep").outerHTML=`<p>✅ Reported. Reference: ${x.ref}</p>`};
-  }catch(e){r.className="Dangerous";r.style.display="block";r.textContent="Could not check: "+e.message}
-  $("go").textContent="Check now";
+const API="http://localhost:8000"; // change this to your Render link after deploying
+const T={
+ en:{skip:"Skip to main content",sub:"Paste a message or link you’re unsure about. You get a safety score and plain reasons in seconds.",label:"Message or link",
+  hint:"Paste an SMS, WhatsApp message or link. You can also upload a PDF, screenshot or voice note. Press Ctrl+Enter to check.",upload:"Upload a file",go:"Check now",checking:"Checking…",
+  privacy:"We never store your files or identity. Anonymous results are deleted after 24 hours.",
+  Safe:"Safe",Suspicious:"Suspicious",Dangerous:"Dangerous",
+  advSafe:"No major risk found. Still, never share your OTP or PIN with anyone.",
+  advSuspicious:"Be careful. Don’t click links or share details. Check with the official source.",
+  advDangerous:"Don’t click, reply or pay. Report this at cybercrime.gov.in or call 1930.",
+  report:"Report to Cyber Crime",reported:"Reported. Reference: ",err:"Could not check: ",empty:"Please paste a message or link first.",selected:"Selected file: ",none:"No suspicious signs found"},
+ hi:{skip:"मुख्य सामग्री पर जाएँ",sub:"कोई संदिग्ध संदेश या लिंक यहाँ डालें। कुछ ही सेकंड में आपको सुरक्षा स्कोर और साफ़ कारण मिलेंगे।",label:"संदेश या लिंक",
+  hint:"SMS, WhatsApp संदेश या लिंक पेस्ट करें। आप PDF, स्क्रीनशॉट या वॉइस नोट भी अपलोड कर सकते हैं। जाँचने के लिए Ctrl+Enter दबाएँ।",upload:"फ़ाइल अपलोड करें",go:"अभी जाँचें",checking:"जाँच हो रही है…",
+  privacy:"हम आपकी फ़ाइलें या पहचान सेव नहीं करते। गुमनाम नतीजे 24 घंटे में अपने आप मिट जाते हैं।",
+  Safe:"सुरक्षित",Suspicious:"संदिग्ध",Dangerous:"ख़तरनाक",
+  advSafe:"कोई बड़ा ख़तरा नहीं मिला। फिर भी किसी को अपना OTP या PIN न बताएँ।",
+  advSuspicious:"सावधान रहें। लिंक पर क्लिक न करें और जानकारी साझा न करें। आधिकारिक स्रोत से पुष्टि करें।",
+  advDangerous:"क्लिक न करें, जवाब न दें और पैसे न भेजें। cybercrime.gov.in पर रिपोर्ट करें या 1930 पर कॉल करें।",
+  report:"साइबर क्राइम को रिपोर्ट करें",reported:"रिपोर्ट हो गई। संदर्भ: ",err:"जाँच नहीं हो सकी: ",empty:"पहले कोई संदेश या लिंक डालें।",selected:"चुनी गई फ़ाइल: ",none:"कोई संदिग्ध संकेत नहीं मिला"}
 };
-</script></body></html>
+const RMAP=[
+ [/known phishing/,"यह लिंक जानी-पहचानी ठगी वाली वेबसाइटों की सूची में है"],
+ [/raw IP/,"लिंक में वेबसाइट के नाम की जगह नंबर है"],
+ [/'@'/,"लिंक में ‘@’ है, जो असली पता छिपाता है"],
+ [/look-alike/,"लिंक में मिलते-जुलते दिखने वाले खास अक्षर हैं"],
+ [/too many sub/,"लिंक में नाम के आगे बहुत सारे हिस्से हैं"],
+ [/Link ends in '(.+?)'/,"लिंक ‘$1’ पर ख़त्म होता है, जिसे ठग अक्सर इस्तेमाल करते हैं"],
+ [/Shortened/,"छोटा किया गया लिंक असली वेबसाइट छिपा देता है"],
+ [/Unusually long/,"लिंक असामान्य रूप से लंबा है"],
+ [/not secure/,"लिंक सुरक्षित नहीं है (HTTPS नहीं)"],
+ [/words like login/,"वेबसाइट के नाम में login, verify या KYC जैसे शब्द हैं"],
+ [/imitates '(.+?)'/,"यह लिंक ‘$1’ की नकल करता है, पर उसकी असली वेबसाइट नहीं है"],
+ [/Link text shows '(.+?)' but really opens '(.+?)'/,"लिंक पर ‘$1’ लिखा है, पर वह असल में ‘$2’ खोलता है"],
+ [/Urgency/,"संदेश में जल्दबाज़ी का दबाव है"],
+ [/Authority/,"संदेश किसी अधिकारी या एजेंसी का नाम लेकर डराता है"],
+ [/Credential/,"संदेश OTP, PIN या दस्तावेज़ माँगता है"],
+ [/Reward/,"संदेश इनाम या लॉटरी का लालच देता है"],
+ [/Payment/,"संदेश पैसे भेजने के लिए दबाव डालता है"],
+ [/Fear/,"संदेश धमकी या डर दिखाता है"],
+ [/No suspicious signs/,null]
+];
+const ICON={Safe:"✅",Suspicious:"⚠️",Dangerous:"🚨"};
+let lang="en",last=null;
+const $=id=>document.getElementById(id),tr=k=>T[lang][k];
+function reason(s){
+ if(lang==="en")return s;
+ for(const [re,hi] of RMAP){const m=s.match(re);if(m)return hi===null?tr("none"):hi.replace(/\$(\d)/g,(_,n)=>m[n]);}
+ return s;
+}
+function applyLang(){
+ document.documentElement.lang=lang;
+ document.querySelectorAll("[data-i]").forEach(e=>e.textContent=tr(e.dataset.i));
+ $("go").textContent=tr("go");
+ $("en").setAttribute("aria-pressed",String(lang==="en"));$("hi").setAttribute("aria-pressed",String(lang==="hi"));
+ const f=$("file").files[0];$("fname").textContent=f?tr("selected")+f.name:"";
+ if(last)render(last);
+}
+function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e}
+function showMsg(msg,kind){
+ const r=$("res");r.className=kind;r.replaceChildren(el("p",msg));r.hidden=false;r.focus();
+}
+function render(d){
+ const r=$("res");r.className=d.verdict;r.replaceChildren();
+ const h=el("h2");h.append(el("span",ICON[d.verdict]));h.lastChild.setAttribute("aria-hidden","true");
+ h.append(" "+tr(d.verdict)+" ("+d.score+"/100)");r.append(h);
+ const m=el("div",undefined,"meter");m.setAttribute("role","img");m.setAttribute("aria-label",d.score+" / 100");
+ const bar=el("i");bar.style.width=d.score+"%";m.append(bar);r.append(m);
+ const ul=el("ul");d.reasons.forEach(x=>ul.append(el("li",reason(x))));r.append(ul);
+ r.append(el("strong",tr("adv"+d.verdict)));
+ if(d.verdict!=="Safe"){
+  const wrap=el("div"),b=el("button",tr("report"),"btn");b.type="button";b.id="rep";
+  b.onclick=async()=>{try{const x=await(await fetch(API+"/report",{method:"POST"})).json();wrap.replaceChildren(el("p",tr("reported")+x.ref))}catch(e){wrap.replaceChildren(el("p",tr("err")+e.message))}};
+  wrap.append(b);r.append(wrap);
+ }
+ r.hidden=false;r.focus();
+}
+async function run(){
+ const txt=$("text").value.trim(),f=$("file").files[0];
+ if(!txt&&!f){showMsg(tr("empty"),"Suspicious");$("text").focus();return}
+ const fd=new FormData();fd.append("text",txt);if(f)fd.append("file",f);
+ const b=$("go");b.disabled=true;b.setAttribute("aria-busy","true");b.textContent=tr("checking");
+ try{
+  const r=await fetch(API+"/analyze",{method:"POST",body:fd}),d=await r.json();
+  if(!r.ok)throw new Error(typeof d.detail==="string"?d.detail:"Error");
+  last=d;render(d);
+ }catch(e){last=null;showMsg(tr("err")+e.message,"Dangerous")}
+ finally{b.disabled=false;b.removeAttribute("aria-busy");b.textContent=tr("go")}
+}
+$("go").onclick=run;
+$("text").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))run()});
+$("file").onchange=()=>{const f=$("file").files[0];$("fname").textContent=f?tr("selected")+f.name:""};
+$("en").onclick=()=>{lang="en";applyLang()};$("hi").onclick=()=>{lang="hi";applyLang()};
+applyLang();
+</script>
+</body>
+</html>
